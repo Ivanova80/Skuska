@@ -1,0 +1,77 @@
+---
+title: "Skú¹ka"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  word_document: default
+  pdf_document: default
+---
+Patrícia Ivanová  
+
+Ako svoje data som zvolila dataset z databázy R-ka toothgrowth. Tento dataset obsahuje merania då¾ky zubov prasiatok v závislosti od  veµkosti dávky vitamínu C a od spôsobu, akým bola dávka podaná. Veµkosti dávky boli 0,5 mg/deò, 1 mg/deò a 2 mg/deò. Spôsoby podania vitamínu C boli 2, a to pomaranèový d¾ús alebo syntetická kyselina askorbová.
+
+Zaèneme naèítaním dát.
+
+```{r}
+dat <- ToothGrowth
+print(dat)
+```
+
+Vykreslíme si graf, v ktorom vidíme závislos» då¾ky zubov prasiatok od mno¾stva dávky vitamínu C a zároveò farebne odlí¹ime spôsob podania.
+```{r}
+library(ggplot2)
+bodgraf <- ggplot(aes(x=dose, y=len),data=dat)+
+  geom_point(aes(color=supp))
+print(bodgraf)
+```
+
+Teraz si vykreslíme boxplot, ktorý nám pomô¾e lep¹ie vidie» prípadne závislosti.
+```{r}
+boxgraf <- ggplot(aes(x=dose, y=len, group=dose),data=dat)+
+  geom_boxplot(aes(fill=dose))
+print(boxgraf)
+```
+
+V grafe vidíme, ¾e boxploty sú nerovnomerne rozmiestnené. Dávku teda pou¾ijeme ako kategorickú premennú nie ako spojitú premennú.
+```{r}
+boxgraf <- ggplot(aes(x=factor(dose), y=len),data=dat)+
+  geom_boxplot(aes(fill=factor(dose)))
+print(boxgraf)
+```
+
+Teraz vykreslíme boxplot, v ktorom budeme vidie» prípadné závislosti då¾ky zubov od spôsobu podania dávky.
+```{r}
+boxgraf <- ggplot(aes(x=factor(supp), y=len),data=dat)+
+  geom_boxplot(aes(fill=factor(supp)))
+print(boxgraf)
+```
+
+V ïal¹om grafe zobrazíme efekt spôsobu podania dávky pre jednotlivé mno¾stvá dávky.
+```{r}
+boxgraf <- ggplot(aes(x=supp, y=len),data=dat)+
+  geom_boxplot(aes(fill=supp)) + 
+  facet_wrap(~dose)
+print(boxgraf)
+```
+
+Teraz chceme porovna», èi je suvis medzi då¾kou zubov a veµkos»ou dávky vitamínu C. Nebereieme ohµad nato akou formou bola dávka podaná. Na túto analýzu pou¾ijeme nepárový T-test. Nato si potrebujeme rozdeli» do dvojíc podµa veµkosti dávky.
+```{r}
+minastr<-subset(dat,dose %in% c(0.5 , 1.0))
+minamax<-subset(dat,dose %in% c(0.5 , 2.0))
+stramax<-subset(dat,dose %in% c(1.0 , 2.0))
+print(minastr)
+```
+Prevedieme nepárový T-test na ka¾dej skupine. 
+```{r}
+t.test(len~dose, paired=FALSE, data=minastr)
+t.test(len~dose, paired=FALSE, data=minamax)
+t.test(len~dose, paired=FALSE, data=stramax)
+```
+Vo výsledkkoch T-testu vidíme, ¾e p hodnota pre v¹etky dvojice je výrazne ni¾¹ia ako 0,05 a teda zvolené dávky majú vplyv na då¾ku zubov prasiatok.
+
+Ïal¹ím nepárovým T-testom vyhodnotíme vplyv spôsobu podania dávky na då¾ku zubov prasiatok.
+```{r}
+t.test(len~supp, paired=FALSE, data=dat)
+```
+Výsledkom T-testu je p hodnota 0,06 a teda závislos» nie je ¹tatisticky významná na hladine 0,05.
